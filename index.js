@@ -2,6 +2,7 @@ const { ApolloServer, gql } = require('apollo-server')
 const mongoose = require('mongoose')
 const CONFIG = require('./config')
 const User = require('./models/user')
+const Post = require('./models/post')
 const bcrypt = require('bcrypt')
 const jwt = require('jwt-simple')
 
@@ -22,6 +23,13 @@ const typeDefs = gql`
     password: String
   }
 
+  type Post {
+    id: ID
+    title: String
+    body: String
+    author: User
+  }
+
   type Response {
     message: String
     success: Boolean
@@ -35,12 +43,14 @@ const typeDefs = gql`
 
   type Query {
     users: [User]
+    posts: [Post]
   }
 
   type Mutation {
     createUser(email: String, password: String): User
     login(email: String, password: String): Response
     validate(token: String): ValidateResponse
+    createPost(title: String, body: String, author: ID): Post
   }
 `
 
@@ -51,9 +61,21 @@ const resolvers = {
         .then(res => res)
         .catch(err => err)
     },
+
+    posts: () => {
+      return Post.find()
+        .populate('author')
+        .then(res => res)
+        .catch(err => err)
+    },
   },
 
   Mutation: {
+    createPost(root, args, context, info) {
+      const { title, body, author } = args
+      return Post.create({ title, body, author }).then(post => post)
+    },
+
     createUser(root, args, context, info) {
       const { email, password } = args
       return User.create({ email, password }).then(user => user)
