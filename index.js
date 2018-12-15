@@ -28,6 +28,8 @@ const typeDefs = gql`
     title: String
     body: String
     author: User
+    userLikes: [User]
+    userDisLikes: [User]
   }
 
   type Response {
@@ -58,6 +60,9 @@ const typeDefs = gql`
     createPost(title: String, body: String, author: ID): Post
     updatePost(title: String, body: String, postID: ID): Post
     deletePost(postID: ID): PostResponse
+    likePost(postID: ID, authorID: ID): Post
+    disLikePost(postID: ID, authorID: ID): Post
+    clearLikeAndDisLike(postID: ID, authorID: ID): Post
   }
 `
 
@@ -72,6 +77,8 @@ const resolvers = {
     posts: () => {
       return Post.find()
         .populate('author')
+        .populate('userLikes')
+        .populate('userDisLikes')
         .then(res => res)
         .catch(err => err)
     },
@@ -106,6 +113,47 @@ const resolvers = {
           message: 'failed to delete post',
           error: true,
         }))
+    },
+
+    likePost(root, { postID, authorID, context, info }) {
+      return Post.findByIdAndUpdate(
+        postID,
+        {
+          $addToSet: { userLikes: authorID },
+          $pull: { userDisLikes: authorID },
+        },
+        { new: true }
+      )
+        .populate('userLikes')
+        .populate('userDisLikes')
+        .then(post => post)
+    },
+
+    disLikePost(root, { postID, authorID }, context, info) {
+      return Post.findByIdAndUpdate(
+        postID,
+        {
+          $addToSet: { userDisLikes: authorID },
+          $pull: { userLikes: authorID },
+        },
+        { new: true }
+      )
+        .populate('userLikes')
+        .populate('userDisLikes')
+        .then(post => post)
+    },
+
+    clearLikeAndDisLike(root, { postID, authorID }, context, info) {
+      return Post.findByIdAndUpdate(
+        postID,
+        {
+          $pull: { userDisLikes: authorID, userLikes: authorID },
+        },
+        { new: true }
+      )
+        .populate('userLikes')
+        .populate('userDisLikes')
+        .then(post => post)
     },
 
     // user

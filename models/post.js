@@ -16,6 +16,18 @@ const postSchema = new Schema({
     ref: 'user',
     require: true,
   },
+  userLikes: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+  ],
+  userDisLikes: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+  ],
 })
 
 const Model = model('post', postSchema)
