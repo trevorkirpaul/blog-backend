@@ -41,6 +41,11 @@ const typeDefs = gql`
     validated: Boolean
   }
 
+  type PostResponse {
+    message: String
+    error: Boolean
+  }
+
   type Query {
     users: [User]
     posts: [Post]
@@ -51,6 +56,8 @@ const typeDefs = gql`
     login(email: String, password: String): Response
     validate(token: String): ValidateResponse
     createPost(title: String, body: String, author: ID): Post
+    updatePost(title: String, body: String, postID: ID): Post
+    deletePost(postID: ID): PostResponse
   }
 `
 
@@ -71,11 +78,37 @@ const resolvers = {
   },
 
   Mutation: {
+    // posts
     createPost(root, args, context, info) {
       const { title, body, author } = args
       return Post.create({ title, body, author }).then(post => post)
     },
 
+    updatePost(root, args, context, info) {
+      const { postID, title, body } = args
+
+      return Post.findByIdAndUpdate(
+        postID,
+        { $set: { title, body } },
+        { new: true }
+      ).then(post => post)
+    },
+
+    deletePost(root, args, context, info) {
+      const { postID } = args
+
+      return Post.findByIdAndDelete(postID)
+        .then(() => ({
+          message: 'successfully deleted post',
+          error: false,
+        }))
+        .catch(() => ({
+          message: 'failed to delete post',
+          error: true,
+        }))
+    },
+
+    // user
     createUser(root, args, context, info) {
       const { email, password } = args
       return User.create({ email, password }).then(user => user)
