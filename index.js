@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const CONFIG = require('./config')
 const User = require('./models/user')
 const Post = require('./models/post')
+const Comment = require('./models/comment')
 const bcrypt = require('bcrypt')
 const jwt = require('jwt-simple')
 
@@ -30,6 +31,18 @@ const typeDefs = gql`
     author: User
     userLikes: [User]
     userDisLikes: [User]
+    childComments: [Comment]
+  }
+
+  type Comment {
+    id: ID
+    body: String
+    author: User
+    parentComment: Comment
+    childComments: [Comment]
+    parentPost: Post
+    userLikes: [User]
+    userDisLikes: [User]
   }
 
   type Response {
@@ -48,9 +61,16 @@ const typeDefs = gql`
     error: Boolean
   }
 
+  type CommentResponse {
+    message: String
+    error: Boolean
+    comment: Comment
+  }
+
   type Query {
     users: [User]
     posts: [Post]
+    comments: [Comment]
   }
 
   type Mutation {
@@ -63,6 +83,13 @@ const typeDefs = gql`
     likePost(postID: ID, authorID: ID): Post
     disLikePost(postID: ID, authorID: ID): Post
     clearLikeAndDisLike(postID: ID, authorID: ID): Post
+
+    createComment(
+      body: String!
+      authorID: ID!
+      parentCommentID: ID
+      parentPostID: ID
+    ): CommentResponse
   }
 `
 
@@ -79,8 +106,18 @@ const resolvers = {
         .populate('author')
         .populate('userLikes')
         .populate('userDisLikes')
+        .populate('childComments')
         .then(res => res)
         .catch(err => err)
+    },
+
+    comments: () => {
+      return Comment.find()
+        .populate('author')
+        .populate('parentComment')
+        .populate('parentPost')
+        .populate('userLikes')
+        .populate('userDisLikes')
     },
   },
 
@@ -154,6 +191,50 @@ const resolvers = {
         .populate('userLikes')
         .populate('userDisLikes')
         .then(post => post)
+    },
+
+    /*
+      Comment
+    */
+
+    createComment(root, args, context, info) {
+      const { body, authorID, parentCommentID, parentPostID } = args
+
+      return Comment.create({
+        body,
+        author: authorID,
+        parentComment: parentCommentID,
+        parentPost: parentPostID,
+      }).then(comment => {
+        /*
+          If there was a parentPostID then
+          we'll have to find and update the Post's
+          childComments property
+
+          If there was a parentCommentID
+          that means this comment was for
+          another comment, so we'll have
+          to find and update that comment
+        */
+
+        if (parentPostID) {
+          Post.findByIdAndUpdate(parentPostID, {
+            $push: { childComments: comment._id },
+          }).then(() => {})
+        }
+
+        if (parentCommentID) {
+          Comment.findByIdAndUpdate(parentCommentID, {
+            $push: { childComments: comment._id },
+          }).then(() => {})
+        }
+
+        return {
+          message: 'successfully created comment',
+          error: false,
+          comment,
+        }
+      })
     },
 
     // user

@@ -2,11 +2,7 @@ const mongoose = require('mongoose')
 
 const { Schema, model } = mongoose
 
-const postSchema = new Schema({
-  title: {
-    type: String,
-    require: true,
-  },
+const commentSchema = new Schema({
   body: {
     type: String,
     require: true,
@@ -16,12 +12,20 @@ const postSchema = new Schema({
     ref: 'user',
     require: true,
   },
+  parentComment: {
+    type: Schema.Types.ObjectId,
+    ref: 'comment',
+  },
   childComments: [
     {
       type: Schema.Types.ObjectId,
       ref: 'comment',
     },
   ],
+  parentPost: {
+    type: Schema.Types.ObjectId,
+    ref: 'post',
+  },
   userLikes: [
     {
       type: Schema.Types.ObjectId,
@@ -36,6 +40,6 @@ const postSchema = new Schema({
   ],
 })
 
-const Model = model('post', postSchema)
+const Model = model('comment', commentSchema)
 
 module.exports = Model
