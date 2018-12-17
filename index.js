@@ -77,6 +77,7 @@ const typeDefs = gql`
     createUser(email: String, password: String): User
     login(email: String, password: String): Response
     validate(token: String): ValidateResponse
+
     createPost(title: String, body: String, author: ID): Post
     updatePost(title: String, body: String, postID: ID): Post
     deletePost(postID: ID): PostResponse
@@ -90,6 +91,9 @@ const typeDefs = gql`
       parentCommentID: ID
       parentPostID: ID
     ): CommentResponse
+    likeComment(commentID: ID, authorID: ID): CommentResponse
+    dislikeComment(commentID: ID, authorID: ID): CommentResponse
+    clearLikeAndDislikeComment(commentID: ID, authorID: ID): CommentResponse
   }
 `
 
@@ -235,6 +239,50 @@ const resolvers = {
           comment,
         }
       })
+    },
+
+    likeComment(root, { commentID, authorID }, context, info) {
+      return Comment.findByIdAndUpdate(
+        commentID,
+        {
+          $addToSet: { userLikes: authorID },
+          $pull: { userDisLikes: authorID },
+        },
+        { new: true }
+      ).then(comment => ({
+        message: 'successfully liked comment',
+        error: false,
+        comment,
+      }))
+    },
+
+    dislikeComment(root, { commentID, authorID }, context, info) {
+      return Comment.findByIdAndUpdate(
+        commentID,
+        {
+          $addToSet: { userDisLikes: authorID },
+          $pull: { userLikes: authorID },
+        },
+        { new: true }
+      ).then(comment => ({
+        message: 'successfully disliked comment',
+        error: false,
+        comment,
+      }))
+    },
+
+    clearLikeAndDislikeComment(root, { commentID, authorID }, context, info) {
+      return Comment.findByIdAndUpdate(
+        commentID,
+        {
+          $pull: { userLikes: authorID, userDisLikes: authorID },
+        },
+        { new: true }
+      ).then(comment => ({
+        message: 'successfully removed like and dislike from comment',
+        error: false,
+        comment,
+      }))
     },
 
     // user
