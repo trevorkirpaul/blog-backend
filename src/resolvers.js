@@ -1,9 +1,10 @@
-const User = require('../models/user')
-const Post = require('../models/post')
-const Comment = require('../models/comment')
 const bcrypt = require('bcrypt')
 const jwt = require('jwt-simple')
-const CONFIG = require('../config')
+
+const User = require('./models/user')
+const Post = require('./models/post')
+const Comment = require('./models/comment')
+const CONFIG = require('./utils/config')
 
 const { secret } = CONFIG
 
