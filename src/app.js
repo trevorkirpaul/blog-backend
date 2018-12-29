@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
-const CONFIG = require('./src/utils/config')
-const server = require('./src/server')
+
+const CONFIG = require('./utils/config')
+const server = require('./server')
 
 const { user, pw, mongoDBURI } = CONFIG
 
