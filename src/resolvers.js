@@ -57,14 +57,8 @@ const resolvers = {
       const { postID } = args
 
       return Post.findByIdAndDelete(postID)
-        .then(() => ({
-          message: 'successfully deleted post',
-          error: false,
-        }))
-        .catch(() => ({
-          message: 'failed to delete post',
-          error: true,
-        }))
+        .then(post => post)
+        .catch(err => console.log(err))
     },
 
     likePost(root, { postID, authorID, context, info }) {

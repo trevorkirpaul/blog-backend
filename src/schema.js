@@ -63,7 +63,7 @@ const typeDefs = gql`
 
     createPost(title: String, body: String, author: ID): Post
     updatePost(title: String, body: String, postID: ID): Post
-    deletePost(postID: ID): PostResponse
+    deletePost(postID: ID): Post
     likePost(postID: ID, authorID: ID): Post
     disLikePost(postID: ID, authorID: ID): Post
     clearLikeAndDisLike(postID: ID, authorID: ID): Post
