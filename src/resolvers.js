@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jwt-simple')
+const axios = require('axios')
 
 const User = require('./models/user')
 const Post = require('./models/post')
@@ -10,6 +11,18 @@ const { secret } = CONFIG
 
 const resolvers = {
   Query: {
+    articles: () => {
+      return axios.get('http://localhost:1337/articles').then(({ data }) => {
+        const articles = data.map(a => ({
+          id: a._id,
+          title: a.title,
+          content: a.content,
+        }))
+        console.log({ articles })
+        return articles
+      })
+    },
+
     users: () => {
       return User.find()
         .then(res => res)

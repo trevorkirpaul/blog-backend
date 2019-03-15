@@ -1,6 +1,12 @@
 const { gql } = require('apollo-server')
 
 const typeDefs = gql`
+  type Article {
+    id: ID
+    title: String
+    content: String
+  }
+
   type User {
     id: ID
     email: String
@@ -54,6 +60,7 @@ const typeDefs = gql`
     users: [User]
     posts: [Post]
     comments: [Comment]
+    articles: [Article]
   }
 
   type Mutation {
