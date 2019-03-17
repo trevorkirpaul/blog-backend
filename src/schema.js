@@ -7,6 +7,13 @@ const typeDefs = gql`
     content: String
   }
 
+  type Element {
+    id: ID
+    title: String
+    content: String
+    # title: String
+  }
+
   type User {
     id: ID
     email: String
@@ -61,6 +68,7 @@ const typeDefs = gql`
     posts: [Post]
     comments: [Comment]
     articles: [Article]
+    elements: [Element]
   }
 
   type Mutation {

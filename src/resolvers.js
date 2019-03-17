@@ -22,6 +22,12 @@ const resolvers = {
       })
     },
 
+    elements: () => {
+      return axios.get('http://localhost:1337/elements').then(({ data }) => {
+        return data
+      })
+    },
+
     users: () => {
       return User.find()
         .then(res => res)
