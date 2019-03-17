@@ -18,7 +18,6 @@ const resolvers = {
           title: a.title,
           content: a.content,
         }))
-        console.log({ articles })
         return articles
       })
     },
